@@ -89,6 +89,7 @@
                     :get-adapters @adapters
                     :get-adapter-configs  (get-adapter-configs-fn)
                     :remove-adapter (remove-adapter-fn (first args))
+                    :remove-adapter-rule ((@adapters (first args)) :remove-rule (second args))
                     :shutdown (do
                                 (doseq [adapter-name (keys @adapter-configs)]
                                   (remove-adapter-fn adapter-name))
