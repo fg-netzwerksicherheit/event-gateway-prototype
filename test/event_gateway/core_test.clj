@@ -128,3 +128,14 @@
     (gw :remove-adapter "no-jms-test")
     (is (= {} (gw :get-adapter-configs)))))
 
+(deftest single-nojms-gw-add-adapter-rule-test
+  (let [gw-name (first (keys no-jms-gw-cfg))
+        gw-cfg (no-jms-gw-cfg gw-name)
+        gw (create-gw gw-cfg)
+        new-rule {"c-d" {"in-topic" "a"
+                         "out-topic" "b"
+                         "operation" {"name" "no-op"
+                                      "parameters" nil}}}]
+    (gw :add-adapter-rule "no-jms-test" new-rule)
+    (is (= (assoc-in (gw-cfg "adapters") ["no-jms-test" "rules" "c-d"] (-> new-rule vals first)) (gw :get-adapter-configs)))))
+

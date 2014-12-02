@@ -84,6 +84,7 @@
                                        adapter (create-single-adapter adapter-cfg)]
                                    (dosync (alter adapters assoc adapter-name adapter))
                                    (dosync (alter adapter-configs assoc adapter-name (dissoc adapter-cfg "rules"))))
+                    :add-adapter-rule ((@adapters (first args)) :add-rule (second args))
                     :get-cfg (assoc cfg "adapters" (get-adapter-configs-fn))
                     :get-adapters @adapters
                     :get-adapter-configs  (get-adapter-configs-fn)
