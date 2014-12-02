@@ -71,6 +71,10 @@
                                 (adapt :shutdown)))
                             (dosync (alter adapters dissoc adapter-name))
                             (dosync (alter adapter-configs dissoc adapter-name)))
+        get-adapter-configs-fn #(reduce
+                                  (fn [m k]
+                                    (assoc-in m [k "rules"] ((@adapters k) :get-rules)))
+                                  @adapter-configs (keys @adapters))
         self-fn (fn [cmd & args]
                   (condp = cmd
                     :add-adapter (let [adapter-name (-> args first keys first)
@@ -79,10 +83,10 @@
                                        adapter-cfg ((first args) adapter-name)
                                        adapter (create-single-adapter adapter-cfg)]
                                    (dosync (alter adapters assoc adapter-name adapter))
-                                   (dosync (alter adapter-configs assoc adapter-name adapter-cfg)))
-                    :get-cfg (assoc cfg "adapters" @adapter-configs)
+                                   (dosync (alter adapter-configs assoc adapter-name (dissoc adapter-cfg "rules"))))
+                    :get-cfg (assoc cfg "adapters" (get-adapter-configs-fn))
                     :get-adapters @adapters
-                    :get-adapter-configs @adapter-configs
+                    :get-adapter-configs  (get-adapter-configs-fn)
                     :remove-adapter (remove-adapter-fn (first args))
                     :shutdown (do
                                 (doseq [adapter-name (keys @adapter-configs)]
