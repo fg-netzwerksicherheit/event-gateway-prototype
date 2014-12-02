@@ -42,6 +42,15 @@
     (adapter :add-rule new-rule)
     (is (= (merge (adapter-cfg "rules") new-rule) (adapter :get-rules)))))
 
+(deftest single-nojms-adapter-add-existing-rule-test
+  (let [adapter-name (first (keys no-jms-adapter-cfg))
+        adapter-cfg (no-jms-adapter-cfg adapter-name)
+        adapter (create-single-adapter adapter-cfg)
+        new-rule {"a-b" {"in-topic" "c" "out-topic" "d"
+                         "operation" {"name" "no-op"
+                                      "parameters" nil}}}]
+    (is (thrown-with-msg? RuntimeException (re-pattern ex-msg-rule-exists) (adapter :add-rule new-rule)))))
+
 (deftest single-nojms-adapter-remove-rule-test
   (let [adapter-name (first (keys no-jms-adapter-cfg))
         adapter-cfg (no-jms-adapter-cfg adapter-name)

@@ -3,10 +3,12 @@
 
 (def no-jms-prefix "nojms")
 
+(def ex-msg-rule-exists "Rule exists!")
+
 (defn create-single-adapter
   [cfg]
   (println "Creating adapter:" cfg)
-  (let [rules (ref (cfg "rules"))
+  (let [rules (ref {})
         in-url (cfg "in-url")
         out-url (cfg "out-url")
         ks (cfg "ks")
@@ -25,6 +27,8 @@
                   (condp = cmd
                     :add-rule (let [_ (println "Adding rule:" args)
                                     rule-name (-> args first keys first)
+                                    _ (if (contains? @rules rule-name)
+                                        (throw (RuntimeException. ex-msg-rule-exists)))
                                     rule ((first args) rule-name)
                                     prod (when (not (.startsWith out-url no-jms-prefix))
                                            (println "Creating GW producer:" out-url (rule "out-topic"))
@@ -45,8 +49,9 @@
                     :shutdown (doseq [rule-name (keys @rules)]
                                 (remove-rule-fn rule-name))
                     nil))]
-    (doseq [rule-name (keys @rules)]
-      (self-fn :add-rule {rule-name (@rules rule-name)}))
+
+    (doseq [rule (cfg "rules")]
+      (self-fn :add-rule {(key rule) (val rule)}))
     self-fn))
 
 (defn create-gw
