@@ -41,25 +41,23 @@
               _ (pprint gw-startup-cfg)
               gw (create-gw gw-startup-cfg)
 ;              broker-service (start-broker url)
-;              broker-info-producer (create-producer url "/topic/broker.info")
-;              broker-info-fn (fn [msg]
-;                               (condp (fn [t m] (= (type m) t)) msg
-;                                 java.lang.String (condp (fn [v m] (.startsWith m v)) msg
-;                                                    "reply" nil ; We ignore all replies for now.
-;                                                    "command get-destinations"
-;                                                      (let [dst-vector (get-destinations broker-service)
-;                                                            dst-string (str "reply destinations " (clojure.string/join " " dst-vector))]
-;                                                        (broker-info-producer dst-string))
-;                                                    "command get-destinations-with-producers"
-;                                                      (let [dst-vector (get-destinations-with-producers broker-service)
-;                                                            dst-string (str "reply destinations " (clojure.string/join " " dst-vector))]
-;                                                        (broker-info-producer dst-string))
-;                                                    (send-error-msg broker-info-producer (str "Unknown broker.info command: " msg)))
-;                                 (send-error-msg broker-info-producer (str "Invalid data type for broker.info message: " (type msg)))))
-;              broker-info-consumer (create-consumer url "/topic/broker.info" broker-info-fn)
+              management-url (gw-startup-cfg "gw-management-jms-url")
+              management-topic (str "/topic/gw.management." gw-name)
+              management-producer (if (not (nil? management-url))
+                                    (create-producer management-url management-topic))
+              management-fn (fn [msg]
+                              (if (= (type msg) java.lang.String)
+                                (condp (fn [v m] (.startsWith m v)) msg
+                                  "reply" nil ; We ignore all replies for now.
+                                  (send-error-msg management-producer (str "Unknown broker.info command: " msg)))
+                                (send-error-msg management-producer (str "Invalid data type for broker.info message: " (type msg)))))
+              management-consumer (if (not (nil? management-url))
+                                    (create-consumer management-url management-topic management-fn))
               shutdown-fn (fn []
-;                            (broker-info-producer :close)
-;                            (broker-info-consumer :close)
+                            (if (not (nil? management-consumer))
+                              (management-consumer :close))
+                            (if (not (nil? management-producer))
+                              (management-producer :close))
                             (gw :shutdown)
                             )]
           ;;; Running the main from, e.g., leiningen results in stdout not being properly accessible.
