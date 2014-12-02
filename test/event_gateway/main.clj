@@ -40,7 +40,6 @@
               _ (println "Starting gateway:" gw-name "with config:")
               _ (pprint gw-startup-cfg)
               gw (create-gw gw-startup-cfg)
-;              broker-service (start-broker url)
               management-url (gw-startup-cfg "gw-management-jms-url")
               management-topic (str "/topic/gw.management." gw-name)
               management-producer (if (not (nil? management-url))
