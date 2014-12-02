@@ -107,6 +107,20 @@
     (gw :add-adapter new-adapter)
     (is (= (merge (gw-cfg "adapters") new-adapter) (gw :get-adapter-configs)))))
 
+(deftest single-nojms-gw-add-adapter-exists-test
+  (let [gw-name (first (keys no-jms-gw-cfg))
+        gw-cfg (no-jms-gw-cfg gw-name)
+        gw (create-gw gw-cfg)
+        new-adapter {"no-jms-test" {"in-url" (str no-jms-prefix "://foo:61616")
+                                    "out-url" (str no-jms-prefix "://bar:61616")
+                                    "ks" "nojms-test.ks"
+                                    "ts" "nojms-test.ts"
+                                    "rules" {"a-b" {"in-topic" "a"
+                                                    "out-topic" "b"
+                                                    "operation" {"name" "no-op"
+                                                                 "parameters" nil}}}}}]
+    (is (thrown-with-msg? RuntimeException (re-pattern ex-msg-adapter-exists) (gw :add-adapter new-adapter)))))
+
 (deftest single-nojms-gw-remove-adapter-test
   (let [gw-name (first (keys no-jms-gw-cfg))
         gw-cfg (no-jms-gw-cfg gw-name)

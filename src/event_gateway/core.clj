@@ -4,6 +4,7 @@
 (def no-jms-prefix "nojms")
 
 (def ex-msg-rule-exists "Rule exists!")
+(def ex-msg-adapter-exists "Adapter exists!")
 
 (defn create-single-adapter
   [cfg]
@@ -56,7 +57,7 @@
 
 (defn create-gw
   [cfg]
-  (let [adapter-configs (ref (cfg "adapters"))
+  (let [adapter-configs (ref {})
         gw-jms-url (cfg "gw-jms-url")
         ks (cfg "gw-jms-ks")
         ts (cfg "gw-jms-ts")
@@ -73,6 +74,8 @@
         self-fn (fn [cmd & args]
                   (condp = cmd
                     :add-adapter (let [adapter-name (-> args first keys first)
+                                       _ (if (contains? @adapter-configs adapter-name)
+                                           (throw (RuntimeException. ex-msg-adapter-exists)))
                                        adapter-cfg ((first args) adapter-name)
                                        adapter (create-single-adapter adapter-cfg)]
                                    (dosync (alter adapters assoc adapter-name adapter))
@@ -87,8 +90,8 @@
                                 (if (not (nil? @gw-jms-broker))
                                   (.stop @gw-jms-broker)))
                     nil))]
-    (doseq [adapter-name (keys @adapter-configs)]
-      (println "Adding adapter:" adapter-name)
-      (self-fn :add-adapter {adapter-name (@adapter-configs adapter-name)}))
+    (doseq [adapter-cfg (cfg "adapters")]
+      (println "Adding adapter:" (key adapter-cfg))
+      (self-fn :add-adapter {(key adapter-cfg) (val adapter-cfg)}))
     self-fn))
 
