@@ -42,7 +42,7 @@
                                 (dosync (alter rules assoc rule-name rule))
                                 (dosync (alter producers assoc rule-name prod))
                                 (dosync (alter consumers assoc rule-name consu)))
-                    :get-cfg (assoc cfg "rules" @rules)
+                    :get-config (assoc cfg "rules" @rules)
                     :get-consumers @consumers
                     :get-producers @producers
                     :get-rules @rules
@@ -85,7 +85,7 @@
                                    (dosync (alter adapters assoc adapter-name adapter))
                                    (dosync (alter adapter-configs assoc adapter-name (dissoc adapter-cfg "rules"))))
                     :add-adapter-rule ((@adapters (first args)) :add-rule (second args))
-                    :get-cfg (assoc cfg "adapters" (get-adapter-configs-fn))
+                    :get-config (assoc cfg "adapters" (get-adapter-configs-fn))
                     :get-adapters @adapters
                     :get-adapter-configs  (get-adapter-configs-fn)
                     :remove-adapter (remove-adapter-fn (first args))

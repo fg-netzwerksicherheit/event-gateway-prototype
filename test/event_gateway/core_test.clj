@@ -24,7 +24,7 @@
   (let [adapter-name (first (keys no-jms-adapter-cfg))
         adapter-cfg (no-jms-adapter-cfg adapter-name)
         adapter (create-single-adapter adapter-cfg)]
-    (is (= adapter-cfg (adapter :get-cfg)))))
+    (is (= adapter-cfg (adapter :get-config)))))
 
 (deftest single-nojms-adapter-get-rules-test
   (let [adapter-name (first (keys no-jms-adapter-cfg))
@@ -84,7 +84,7 @@
   (let [gw-name (first (keys no-jms-gw-cfg))
         gw-cfg (no-jms-gw-cfg gw-name)
         gw (create-gw gw-cfg)]
-    (is (= gw-cfg (gw :get-cfg)))))
+    (is (= gw-cfg (gw :get-config)))))
 
 (deftest single-nojms-gw-get-adapters-test
   (let [gw-name (first (keys no-jms-gw-cfg))
