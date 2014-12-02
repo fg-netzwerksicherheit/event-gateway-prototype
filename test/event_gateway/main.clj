@@ -12,7 +12,8 @@
   event-gateway.main
   (:use clojure.pprint
         clojure.tools.cli
-        clj-jms-activemq-toolkit.jms)
+        clj-jms-activemq-toolkit.jms
+        event-gateway.core)
   (:gen-class))
 
 (defn -main [& args]
@@ -38,6 +39,7 @@
               gw-startup-cfg (read-cfg gw-name)
               _ (println "Starting gateway:" gw-name "with config:")
               _ (pprint gw-startup-cfg)
+              gw (create-gw gw-startup-cfg)
 ;              broker-service (start-broker url)
 ;              broker-info-producer (create-producer url "/topic/broker.info")
 ;              broker-info-fn (fn [msg]
@@ -58,6 +60,7 @@
               shutdown-fn (fn []
 ;                            (broker-info-producer :close)
 ;                            (broker-info-consumer :close)
+                            (gw :shutdown)
                             )]
           ;;; Running the main from, e.g., leiningen results in stdout not being properly accessible.
           ;;; Hence, this will not work when run this way but works when run from a jar via "java -jar ...".
