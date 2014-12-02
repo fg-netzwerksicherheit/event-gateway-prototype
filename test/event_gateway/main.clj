@@ -49,8 +49,8 @@
                               (if (= (type msg) java.lang.String)
                                 (condp (fn [v m] (.startsWith m v)) msg
                                   "reply" nil ; We ignore all replies for now.
-                                  (send-error-msg management-producer (str "Unknown broker.info command: " msg)))
-                                (send-error-msg management-producer (str "Invalid data type for broker.info message: " (type msg)))))
+                                  (send-error-msg management-producer (str "Unknown command: " msg)))
+                                (send-error-msg management-producer (str "Invalid data type for message: " (type msg)))))
               management-consumer (if (not (nil? management-url))
                                     (create-consumer management-url management-topic management-fn))
               shutdown-fn (fn []
