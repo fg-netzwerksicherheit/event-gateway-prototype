@@ -100,3 +100,19 @@
     (close producer)
     (close consumer)))
 
+(deftest simple-gw-p2p-permission-test
+  (let [gw-name (first (keys jms-test-gw-cfg))
+        gw-cfg (jms-test-gw-cfg gw-name)
+        gw (create-gw gw-cfg)]
+    (create-producer local-gw-jms-server "/topic/a")
+    (is (thrown-with-msg? javax.jms.JMSSecurityException #"User anonymous is not authorized to read from: topic://a" (create-consumer local-gw-jms-server "/topic/a" (fn [_]))))
+    (gw :shutdown)))
+
+(deftest simple-gw-sr-master-permission-test
+  (let [gw-name (first (keys jms-test-gw-cfg))
+        gw-cfg (assoc (jms-test-gw-cfg gw-name) "gw-mode" "sr-master")
+        gw (create-gw gw-cfg)]
+    (create-producer local-gw-jms-server "/topic/a")
+    (create-consumer local-gw-jms-server "/topic/a" (fn [_]))
+    (gw :shutdown)))
+

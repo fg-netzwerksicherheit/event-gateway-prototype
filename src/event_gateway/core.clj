@@ -65,18 +65,26 @@
   [cfg]
   (let [adapter-configs (ref {})
         gw-jms-url (cfg "gw-jms-url")
-        common-gw-state {"gw-jms-url" gw-jms-url, "user-name" "gw-user", "user-password" (base64 16)}
+        gw-mode (if (nil? (cfg "gw-mode"))
+                  "p2p"
+                  (cfg "gw-mode"))
+        common-gw-state (if (= gw-mode "p2p")
+                          {"gw-jms-url" gw-jms-url, "user-name" "gw-user", "user-password" (base64 16)}
+                          {})
         ks (cfg "gw-jms-ks")
         ts (cfg "gw-jms-ts")
         adapters (ref {})
         gw-jms-broker (ref (when (not (.startsWith gw-jms-url no-jms-prefix))
                              (println "Starting GW JMS broker at:" gw-jms-url)
-                             (start-broker gw-jms-url true
-                                           [{"name" (common-gw-state "user-name") "password" (common-gw-state "user-password") "groups" "gw-group"}]
-                                           [{"target" ">", "type" "topic", "admin" "gw-group", "read" "gw-group", "write" "gw-group"}
-                                            {"target" ">", "type" "topic", "write" "anonymous"}
-                                            {"target" "ActiveMQ.Advisory.Producer.Topic.*", "type" "topic", "admin" "anonymous", "write" "anonymous"}
-                                            {"target" "ActiveMQ.Advisory.TempQueue,ActiveMQ.Advisory.TempTopic", "type" "topic", "read" "anonymous"}])))
+                             (condp = gw-mode
+                               "p2p" (start-broker
+                                       gw-jms-url true [{"name" (common-gw-state "user-name") "password" (common-gw-state "user-password") "groups" "gw-group"}]
+                                       [{"target" ">", "type" "topic", "admin" "gw-group", "read" "gw-group", "write" "gw-group"}
+                                        {"target" ">", "type" "topic", "write" "anonymous"}
+                                        {"target" "ActiveMQ.Advisory.Producer.Topic.*", "type" "topic", "admin" "anonymous", "write" "anonymous"}
+                                        {"target" "ActiveMQ.Advisory.TempQueue,ActiveMQ.Advisory.TempTopic", "type" "topic", "read" "anonymous"}])
+                               "sr-master" (start-broker gw-jms-url)
+                               nil)))
         remove-adapter-fn (fn [adapter-name]
                             (let [adapt (@adapters adapter-name)]
                               (if (not (nil? adapt))
