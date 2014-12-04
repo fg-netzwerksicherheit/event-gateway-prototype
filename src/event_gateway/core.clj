@@ -10,7 +10,7 @@
 (defn create-single-adapter
   ([cfg]
    (create-single-adapter cfg {}))
-  ([cfg common-gw-state]
+  ([cfg gw-auth-info]
    (println "Creating adapter:" cfg)
    (let [rules (ref {})
          in-url (cfg "in-url")
@@ -41,10 +41,10 @@
                                                   (prod data))
                                      consu (when (not (.startsWith in-url no-jms-prefix))
                                              (println "Creating GW consumer:" in-url (rule "in-topic"))
-                                             (if (= in-url (common-gw-state "gw-jms-url"))
+                                             (if (= in-url (gw-auth-info "gw-jms-url"))
                                                (do
                                                  (println "Connecting consumer with authentication.")
-                                                 (binding [*user-name* (common-gw-state "user-name") *user-password* (common-gw-state "user-password")]
+                                                 (binding [*user-name* (gw-auth-info "user-name") *user-password* (gw-auth-info "user-password")]
                                                    (create-consumer in-url (rule "in-topic") forward-fn)))
                                                (do
                                                  (println "Connecting consumer without authentication.")
@@ -72,7 +72,7 @@
         gw-mode (if (nil? (cfg "gw-mode"))
                   "p2p"
                   (cfg "gw-mode"))
-        common-gw-state (if (= gw-mode "p2p")
+        gw-auth-info (if (= gw-mode "p2p")
                           {"gw-jms-url" gw-jms-url, "user-name" "gw-user", "user-password" (base64 16)}
                           {})
         ks (cfg "gw-jms-ks")
@@ -82,7 +82,7 @@
                              (println "Starting GW JMS broker at:" gw-jms-url)
                              (condp = gw-mode
                                "p2p" (start-broker
-                                       gw-jms-url true [{"name" (common-gw-state "user-name") "password" (common-gw-state "user-password") "groups" "gw-group"}]
+                                       gw-jms-url true [{"name" (gw-auth-info "user-name") "password" (gw-auth-info "user-password") "groups" "gw-group"}]
                                        [{"target" ">", "type" "topic", "admin" "gw-group", "read" "gw-group", "write" "gw-group"}
                                         {"target" ">", "type" "topic", "write" "anonymous"}
                                         {"target" "ActiveMQ.Advisory.Producer.Topic.*", "type" "topic", "admin" "anonymous", "write" "anonymous"}
@@ -105,7 +105,7 @@
                                        _ (if (contains? @adapter-configs adapter-name)
                                            (throw (RuntimeException. ex-msg-adapter-exists)))
                                        adapter-cfg ((first args) adapter-name)
-                                       adapter (create-single-adapter adapter-cfg common-gw-state)]
+                                       adapter (create-single-adapter adapter-cfg gw-auth-info)]
                                    (dosync (alter adapters assoc adapter-name adapter))
                                    (dosync (alter adapter-configs assoc adapter-name (dissoc adapter-cfg "rules"))))
                     :add-adapter-rule ((@adapters (first args)) :add-rule (second args))
