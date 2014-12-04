@@ -17,16 +17,12 @@
 (def test-topic "/topic/test.topic.a")
 
 (deftest create-producer-without-permission-test
-  (let [broker-service (doto (BrokerService.)
-                 (.addConnector jms-server-addr)
-                 (.setPersistent false)
-                 (.setUseJmx false))
+  (let [broker-service (start-broker jms-server-addr)
         authentication-plugin (doto (SimpleAuthenticationPlugin. test-users)
                                 (.setAnonymousAccessAllowed false)
                                 (.setAnonymousUser "anonymous")
                                 (.setAnonymousGroup "anonymous")
                                 (.installPlugin (.getBroker broker-service)))
-        _ (.start broker-service)
         producer (create-producer jms-server-addr test-topic)
 ;        was-run (prepare-flag)
 ;        consume-fn (fn [_] (set-flag was-run))
