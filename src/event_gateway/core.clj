@@ -73,8 +73,8 @@
                   "p2p"
                   (cfg "gw-mode"))
         gw-auth-info (if (= gw-mode "p2p")
-                          {"gw-jms-url" gw-jms-url, "user-name" "gw-user", "user-password" (base64 16)}
-                          {})
+                       {"gw-jms-url" gw-jms-url, "user-name" "gw-user", "user-password" (base64 16)}
+                       {})
         ks (cfg "gw-jms-ks")
         ts (cfg "gw-jms-ts")
         adapters (ref {})
