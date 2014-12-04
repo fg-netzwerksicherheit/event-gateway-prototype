@@ -42,9 +42,13 @@
                                      consu (when (not (.startsWith in-url no-jms-prefix))
                                              (println "Creating GW consumer:" in-url (rule "in-topic"))
                                              (if (= in-url (common-gw-state "gw-jms-url"))
-                                               (binding [*user-name* (common-gw-state "user-name") *user-password* (common-gw-state "user-password")]
-                                                 (create-consumer in-url (rule "in-topic") forward-fn))
-                                               (create-consumer in-url (rule "in-topic") forward-fn)))]
+                                               (do
+                                                 (println "Connecting consumer with authentication.")
+                                                 (binding [*user-name* (common-gw-state "user-name") *user-password* (common-gw-state "user-password")]
+                                                   (create-consumer in-url (rule "in-topic") forward-fn)))
+                                               (do
+                                                 (println "Connecting consumer without authentication.")
+                                                 (create-consumer in-url (rule "in-topic") forward-fn))))]
                                  (dosync (alter rules assoc rule-name rule))
                                  (dosync (alter producers assoc rule-name prod))
                                  (dosync (alter consumers assoc rule-name consu)))
