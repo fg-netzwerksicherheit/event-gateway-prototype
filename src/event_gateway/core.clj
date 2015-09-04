@@ -1,6 +1,6 @@
 (ns event-gateway.core
-  (:use clj-jms-activemq-toolkit.jms
-        crypto.random))
+  (:use clj-jms-activemq-toolkit.jms)
+  (:require [crypto.random :as crypt]))
 
 (def no-jms-prefix "nojms")
 
@@ -73,7 +73,7 @@
                   "p2p"
                   (cfg "gw-mode"))
         gw-auth-info (if (= gw-mode "p2p")
-                       {"gw-jms-url" gw-jms-url, "user-name" "gw-user", "user-password" (base64 16)}
+                       {"gw-jms-url" gw-jms-url, "user-name" "gw-user", "user-password" (crypt/base64 16)}
                        {})
         ks (cfg "gw-jms-ks")
         ts (cfg "gw-jms-ts")
