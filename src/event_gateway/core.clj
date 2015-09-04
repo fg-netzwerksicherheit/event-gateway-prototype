@@ -86,6 +86,7 @@
                                        [{"target" ">", "type" "topic", "admin" "gw-group", "read" "gw-group", "write" "gw-group"}
                                         {"target" ">", "type" "topic", "write" "anonymous"}
                                         {"target" "ActiveMQ.Advisory.Producer.Topic.*", "type" "topic", "admin" "anonymous", "write" "anonymous"}
+                                        {"target" "ActiveMQ.Advisory.Connection", "type" "topic", "admin" "anonymous", "write" "anonymous"}
                                         {"target" "ActiveMQ.Advisory.TempQueue,ActiveMQ.Advisory.TempTopic", "type" "topic", "read" "anonymous"}])
                                "sr-master" (start-broker gw-jms-url)
                                nil)))
