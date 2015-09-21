@@ -10,7 +10,8 @@
   ^{:author "Ruediger Gad",
     :doc "Main class to start an event gateway instance."}
   event-gateway.main
-  (:use clojure.pprint
+  (:use [cheshire.core :only [generate-string parse-string]]
+        clojure.pprint
         clojure.tools.cli
         clj-jms-activemq-toolkit.jms
         event-gateway.core)
@@ -43,15 +44,32 @@
               management-url (gw-startup-cfg "gw-management-jms-url")
               management-topic (str "/topic/gw.management." gw-name)
               management-producer (if (not (nil? management-url))
-                                    (create-producer management-url management-topic))
+                                    (create-producer management-url (str management-topic ".reply")))
               management-fn (fn [msg]
                               (if (= (type msg) java.lang.String)
-                                (condp (fn [v m] (.startsWith m v)) msg
-                                  "reply" nil ; We ignore all replies for now.
-                                  (send-error-msg management-producer (str "Unknown command: " msg)))
-                                (send-error-msg management-producer (str "Invalid data type for message: " (type msg)))))
+                                (let [m (parse-string msg)
+                                      cmd (m "cmd")
+                                      args (m "args")]
+                                   (condp = cmd
+                                      "get-adapters" (let [cfg (gw :get-adapters)
+                                                           reply-json (generate-string {"adapters" cfg})]
+                                                       (management-producer reply-json))
+                                      "get-config" (let [cfg (gw :get-config)
+                                                         reply-json (generate-string {"config" cfg})]
+                                                     (management-producer reply-json))
+                                      "get-consumers" (let [cfg (gw :get-consumers)
+                                                            reply-json (generate-string {"consumers" cfg})]
+                                                        (management-producer reply-json))
+                                      "get-producers" (let [cfg (gw :get-producers)
+                                                            reply-json (generate-string {"producers" cfg})]
+                                                        (management-producer reply-json))
+                                      "get-rules" (let [cfg (gw :get-rules)
+                                                        reply-json (generate-string {"rules" cfg})]
+                                                    (management-producer reply-json))
+                                      (send-error-msg management-producer (str "Invalid event gateway command message: " msg))))
+                                (send-error-msg management-producer (str "Invalid data type for event gateway command message: " (type msg)))))
               management-consumer (if (not (nil? management-url))
-                                    (create-consumer management-url management-topic management-fn))
+                                    (create-consumer management-url (str management-topic ".cmd") management-fn))
               shutdown-fn (fn []
                             (if (not (nil? management-consumer))
                               (management-consumer :close))
