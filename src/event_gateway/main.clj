@@ -51,21 +51,31 @@
                                       cmd (m "cmd")
                                       args (m "args")]
                                    (condp = cmd
+                                      "add-adapter" (try
+                                                      (gw :add-adapter args)
+                                                      (catch Exception e
+                                                        (management-producer (generate-string {"exception" (.getMessage e)}))))
+                                      "add-adapter-rule" (try
+                                                           (gw :add-adapter-rule (args "adapter") (args "rule"))
+                                                           (catch Exception e
+                                                             (management-producer (generate-string {"exception" (.getMessage e)}))))
                                       "get-adapters" (let [cfg (gw :get-adapters)
                                                            reply-json (generate-string {"adapters" cfg})]
                                                        (management-producer reply-json))
+                                      "get-adapter-configs" (let [cfg (gw :get-adapter-configs)
+                                                                  reply-json (generate-string {"adapter-configs" cfg})]
+                                                              (management-producer reply-json))
                                       "get-config" (let [cfg (gw :get-config)
                                                          reply-json (generate-string {"config" cfg})]
                                                      (management-producer reply-json))
-                                      "get-consumers" (let [cfg (gw :get-consumers)
-                                                            reply-json (generate-string {"consumers" cfg})]
-                                                        (management-producer reply-json))
-                                      "get-producers" (let [cfg (gw :get-producers)
-                                                            reply-json (generate-string {"producers" cfg})]
-                                                        (management-producer reply-json))
-                                      "get-rules" (let [cfg (gw :get-rules)
-                                                        reply-json (generate-string {"rules" cfg})]
-                                                    (management-producer reply-json))
+                                      "remove-adapter" (try
+                                                         (gw :remove-adapter args)
+                                                         (catch Exception e
+                                                           (management-producer (generate-string {"exception" (.getMessage e)}))))
+                                      "remove-adapter-rule" (try
+                                                              (gw :remove-adapter-rule (args "adapter") (args "rule"))
+                                                              (catch Exception e
+                                                                (management-producer (generate-string {"exception" (.getMessage e)}))))
                                       (send-error-msg management-producer (str "Invalid event gateway command message: " msg))))
                                 (send-error-msg management-producer (str "Invalid data type for event gateway command message: " (type msg)))))
               management-consumer (if (not (nil? management-url))
